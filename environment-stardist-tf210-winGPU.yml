@@ -1,0 +1,31 @@
+# FROZEN FALLBACK: StarDist with GPU on NATIVE Windows.
+# Only use this if you specifically need StarDist (TensorFlow) AND want GPU on native Windows
+# WITHOUT WSL2. TensorFlow 2.10 is the LAST release with native-Windows GPU support; everything
+# here is pinned to that frozen stack and will not receive security/bugfix updates.
+#
+# Preferred alternatives:
+#   - Cellpose (PyTorch) on native Windows  -> environment-segtrack.yml  (recommended)
+#   - StarDist GPU under WSL2 with a current TF + CUDA stack (no native-Windows TF GPU limits)
+#
+# Native-Windows GPU pin set (must match exactly):
+#   TensorFlow 2.10  <->  CUDA 11.2  <->  cuDNN 8.1
+#
+# Create:  conda env create -f environment-stardist-tf210-winGPU.yml
+name: stardist-tf210-wingpu
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10            # 3.9-3.10 are the safe pairing for the TF 2.10 wheel
+  - pip
+  - numpy<2               # TF 2.10 predates numpy 2
+  - scipy
+  - scikit-image
+  - tifffile
+  - imagecodecs
+  - cudatoolkit=11.2      # from conda-forge; required by TF 2.10 GPU
+  - cudnn=8.1             # from conda-forge; required by TF 2.10 GPU
+  - pip:
+      - "tensorflow<2.11"  # i.e. 2.10.x — last native-Windows GPU build
+      - stardist           # 0.9.x: prebuilt win_amd64 wheels, numpy2-aware but pinned <2 here
+      - csbdeep
+      - gputools           # OPTIONAL ~2x train speedup; needs OpenCL + MSVC, painful on Windows

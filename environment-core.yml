@@ -1,0 +1,31 @@
+# CORE environment for the 3D displacement-field registration pipeline.
+# Cross-platform (Windows / macOS / Linux), CPU-only — SimpleITK is multithreaded CPU,
+# no GPU required for registration. This reproduces what the investigation/ scripts use.
+# Create:  conda env create -f environment-core.yml
+# Update:  conda env update -f environment-core.yml --prune
+#
+# NOTE: a fuller Windows + GPU spec covering nuclei segmentation (StarDist/Cellpose) and
+# cell tracking is being verified and will be added as environment-segtrack.yml.
+name: microscope-tracking
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11          # 3.11 chosen for broad tool compatibility (3.13 is too new for many DL libs)
+  - pip
+  - numpy
+  - scipy
+  - scikit-image
+  - tifffile
+  - imagecodecs          # decode compressed TIFFs (your raw files are compressed)
+  - matplotlib
+  - zarr                 # compact, chunked storage for displacement fields
+  - dask                 # lazy / out-of-core processing of large 4D stacks
+  - simpleitk=2.5        # rigid + diffeomorphic Demons + BSpline registration
+  - pandas
+  - napari               # interactive 3D/4D visualization (optional but recommended)
+  - pyqt                 # napari Qt backend
+  - pip:
+      # itk-elastix has prebuilt wheels for win_amd64 (cp310 + cp311-abi3, latest 0.25.3),
+      # macOS arm64, and manylinux -> no compiler needed on Windows. Requires Python >=3.10.
+      # The cp311-abi3 wheel covers 3.11/3.12/3.13 on Windows. Install via pip (not on conda-forge).
+      - itk-elastix==0.25.3   # validated registration parameter maps (alternative engine)

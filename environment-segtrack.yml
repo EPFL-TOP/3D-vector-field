@@ -1,0 +1,57 @@
+# SEG+TRACK environment: 3D nuclei segmentation (Cellpose, PyTorch) + cell tracking (Ultrack).
+# Ultrack consumes label masks from Cellpose and uses a precomputed displacement/flow field
+# as the MOTION PRIOR via ultrack.add_flow() -> linking survives the heat-shock contraction.
+#
+# WHY Cellpose (PyTorch) and NOT StarDist (TensorFlow) for a WINDOWS server:
+#   TensorFlow 2.11+ DROPPED native-Windows GPU support. TF 2.10 (the last GPU-on-native-Windows
+#   build) needs CUDA 11.2 + cuDNN 8.1 and is frozen/unmaintained. StarDist GPU on Windows now
+#   effectively means WSL2. Cellpose uses PyTorch, whose CUDA wheels are first-class on native
+#   Windows -> simplest, supported GPU path. If you specifically need StarDist GPU, see
+#   environment-stardist-tf210-winGPU.yml (frozen) or run StarDist under WSL2.
+#
+# Create (GPU): conda env create -f environment-segtrack.yml
+#               then install the matching PyTorch CUDA wheels with pip (see note below).
+#
+# IMPORTANT: PyTorch deprecated its Anaconda channel (last conda release was 2.5; the `-c pytorch
+# -c nvidia` recipe is dead for new versions). Install torch via pip from the PyTorch CUDA index.
+name: segtrack
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - numpy              # UNPINNED on purpose: cellpose v4 + conda-forge scikit-image are built
+                       # against numpy 2; a hard numpy<2 forces an older scikit-image and can make
+                       # the solve unsatisfiable. Only pin numpy<2 if a concrete conflict appears.
+  - scipy
+  - scikit-image
+  - tifffile
+  - imagecodecs
+  - zarr
+  - dask
+  - pandas
+  - numba              # cellpose dynamics; conda-forge build avoids MSVC/llvmlite build pain
+  - napari
+  - pyqt
+  - higra              # ultrack hierarchical segmentation backend
+  - sqlalchemy         # ultrack intermediate DB
+  - pip:
+      # --- GPU PATH (native Windows, NVIDIA present) ---------------------------------
+      # Pick ONE CUDA tag matching the server driver. cu124 is a safe modern default.
+      # Run this as a SEPARATE pip step so the index-url applies only to torch:
+      #   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+      # (cu118 / cu126 / cu128 also offered; the wheel bundles its own CUDA runtime,
+      #  so you do NOT need a system CUDA toolkit install, only an NVIDIA driver.)
+      #
+      # --- CPU-ONLY PATH (no GPU on the server) --------------------------------------
+      #   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+      #
+      - cellpose>=4         # 3D nuclei segmentation; PyTorch backend, native-Windows GPU OK
+      - ultrack>=0.6        # ILP cell tracking; consumes Cellpose labels; add_flow() motion prior
+      # Free ILP solver (CBC) ships with ultrack's deps; Gurobi is OPTIONAL (academic license,
+      # faster on large graphs):  conda install -c gurobi gurobi   then   ultrack check_gurobi
+      #
+      # GPU-accelerated flow/morphology inside ultrack (advenct_field, apply_field) wants cupy +
+      # cuCIM. cupy has Windows wheels (cupy-cuda12x); cuCIM is LINUX-ONLY (no Windows build) ->
+      # on native Windows skip cuCIM and feed your SimpleITK field straight into add_flow().
+      #   pip install cupy-cuda12x        # only if GPU present and CUDA 12.x torch chosen

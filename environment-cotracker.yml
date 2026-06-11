@@ -1,0 +1,31 @@
+# OPTIONAL CoTracker3 environment (2D point tracker). NOTE: CoTracker3 was REJECTED for this
+# project (2D-only, OOD-fragile on nuclear-marker volumes, collapses across the contraction).
+# Kept ONLY so you can re-test it in isolation. Isolated from the seg+track env to avoid any
+# torch/CUDA clashes.
+#
+# CoTracker3 has no PyPI package; install from GitHub (pip install -e .). It needs torch +
+# torchvision; CUDA strongly recommended but CPU works for small clips.
+#
+# Create:  conda env create -f environment-cotracker.yml
+# Then (GPU, native Windows, pick CUDA tag for the server driver):
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+# Or CPU-only:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# Then:
+#   git clone https://github.com/facebookresearch/co-tracker
+#   cd co-tracker && pip install -e .
+#   pip install matplotlib flow_vis tqdm imageio[ffmpeg]
+name: cotracker
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - numpy
+  - pip:
+      - matplotlib
+      - flow_vis
+      - tqdm
+      - imageio[ffmpeg]
+      # torch / torchvision installed separately from the PyTorch CUDA index (see header).
+      # co-tracker itself installed via `pip install -e .` from the cloned repo.
