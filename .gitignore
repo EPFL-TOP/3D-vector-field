@@ -1,0 +1,67 @@
+# ============================================================================
+# Commit ONLY code + config + docs (*.py, environment-*.yml, *.md, .gitignore).
+# Everything below (raw data, displacement fields, rendered outputs) is large
+# and/or regenerable and must stay out of git.
+# ============================================================================
+
+# ---- Raw microscopy data & large volumes ----
+*.tif
+*.tiff
+*.ome.tif
+*.czi
+*.nd2
+*.lsm
+*.lif
+*.ims
+
+# ---- Displacement fields / volumetric intermediates ----
+*.nrrd
+*.nhdr
+*.nii
+*.nii.gz
+*.mha
+*.mhd
+*.npy
+*.npz
+*.zarr/
+*.h5
+*.hdf5
+*.tfm          # SimpleITK transforms
+
+# ---- Rendered outputs (movies, figures, results) ----
+*.gif
+*.mp4
+*.avi
+*.png
+*.jpg
+*.jpeg
+out/
+**/out/
+fields/
+**/fields/
+results/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+.pytest_cache/
+build/
+dist/
+
+# ---- Conda / virtualenvs (the spec files environment-*.yml ARE committed) ----
+.venv/
+venv/
+env/
+.conda/
+
+# ---- OS / editor cruft ----
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# ---- Claude Code local session/settings ----
+.claude/

@@ -18,6 +18,8 @@ dependencies:
   - tifffile
   - imagecodecs          # decode compressed TIFFs (your raw files are compressed)
   - matplotlib
+  - imageio              # write the co-moving GIF
+  - imageio-ffmpeg       # MP4 export (bundles ffmpeg; without it MP4 export is skipped)
   - zarr                 # compact, chunked storage for displacement fields
   - dask                 # lazy / out-of-core processing of large 4D stacks
   - simpleitk=2.5        # rigid + diffeomorphic Demons + BSpline registration
