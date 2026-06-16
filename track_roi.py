@@ -47,6 +47,9 @@ def main():
     ap.add_argument("--center", default=None, help='"x,y,z" microns; default = auto (bright-tissue centroid)')
     ap.add_argument("--size-um", type=float, default=60.0)
     ap.add_argument("--out-xy-ds", type=int, default=0, help="crop render resolution (0 = same as --xy-ds; 2 = cell-level)")
+    ap.add_argument("--mip-um", type=float, default=20.0,
+                    help="pseudo-MIP movie uses only the central N microns in z (0 = full box). "
+                         "A thin slab (~15-25um) avoids the wash-out you get projecting the whole 60um box.")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     files = sorted(glob.glob(args.input))
@@ -106,7 +109,12 @@ def main():
     tifffile.imwrite(f"{args.out}/roi_comoving.tif", u8(co, lo, hi), imagej=True, metadata={"axes": "TZYX"})
     tifffile.imwrite(f"{args.out}/roi_rawbox.tif", u8(rawbox, lo, hi), imagej=True, metadata={"axes": "TZYX"})
 
-    co_m, raw_m = co.max(1), rawbox.max(1)
+    if args.mip_um > 0:                              # thin central slab -> avoids full-box wash-out
+        zc = co.shape[1] // 2; hz = max(1, int(round(args.mip_um / 2 / sp_o[2])))
+        z0, z1 = max(0, zc - hz), min(co.shape[1], zc + hz + 1)
+        co_m, raw_m = co[:, z0:z1].max(1), rawbox[:, z0:z1].max(1)
+    else:
+        co_m, raw_m = co.max(1), rawbox.max(1)
     lo2, hi2 = np.percentile(co_m, [1, 99.5])
     sep = np.full((co_m.shape[1], 4), 255, np.uint8)
     frames = [np.hstack([u8(raw_m[t], lo2, hi2), sep, u8(co_m[t], lo2, hi2)]) for t in range(len(co_m))]
